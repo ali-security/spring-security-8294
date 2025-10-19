@@ -34,6 +34,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @author Dave Syer
  */
 public class BCryptPasswordEncoder implements PasswordEncoder {
+	private static final String USER_NOT_FOUND_ENCODED_PASSWORD = "$2a$10$nznEsHkFV5MWw8EahOcGzO6nJO2etI3zEzWH4x6Tmi2jK06JGB1Pm";
 
 	private Pattern BCRYPT_PATTERN = Pattern.compile("\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}");
 
@@ -130,7 +131,12 @@ public class BCryptPasswordEncoder implements PasswordEncoder {
 			this.logger.warn("Encoded password does not look like BCrypt");
 			return false;
 		}
-		return BCrypt.checkpw(rawPassword.toString(), encodedPassword);
+		try {
+			return BCrypt.checkpw(rawPassword.toString(), encodedPassword);
+		} catch (IllegalStateException e) {
+			BCrypt.checkpw_unsafe(rawPassword.toString(), USER_NOT_FOUND_ENCODED_PASSWORD);
+			return false;
+		}
 	}
 
 	@Override

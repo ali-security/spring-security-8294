@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author Dave Syer
@@ -220,6 +221,18 @@ public class BCryptPasswordEncoderTests {
 		assertThat(encoder.matches("password", "$2a$00$9N8N35BVs5TLqGL3pspAte5OWWA2a2aZIs.EGp7At7txYakFERMue"))
 				.isTrue();
 		assertThat(encoder.matches("wrong", "$2a$00$9N8N35BVs5TLqGL3pspAte5OWWA2a2aZIs.EGp7At7txYakFERMue")).isFalse();
+	}
+
+	@Test
+	public void enforcePasswordLength() {
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		String password72chars = "123456789012345678901234567890123456789012345678901234567890123456789012";
+		String password73chars = password72chars.concat("a");
+
+		String encodedPassword72chars = encoder.encode(password72chars);
+
+		assertThat(encoder.matches(password72chars, encoder.encode(password72chars))).isTrue();
+		assertThat(encoder.matches(password73chars, encodedPassword72chars)).isFalse();
 	}
 
 }

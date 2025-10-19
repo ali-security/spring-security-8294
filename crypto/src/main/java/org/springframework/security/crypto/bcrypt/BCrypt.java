@@ -576,7 +576,11 @@ public class BCrypt {
 	}
 
 	private static String hashpwforcheck(byte[] passwordb, String salt) {
-		return hashpw(passwordb, salt, true);
+		return hashpw(passwordb, salt, true, false);
+	}
+
+	private static String hashpwforcheck_unsafe(byte[] passwordb, String salt) {
+		return hashpw(passwordb, salt, true, true);
 	}
 
 	/**
@@ -600,10 +604,10 @@ public class BCrypt {
 	 * @return the hashed password
 	 */
 	public static String hashpw(byte passwordb[], String salt) {
-		return hashpw(passwordb, salt, false);
+		return hashpw(passwordb, salt, false, false);
 	}
 
-	private static String hashpw(byte passwordb[], String salt, boolean for_check) {
+	private static String hashpw(byte passwordb[], String salt, boolean for_check, boolean unsafe) {
 		BCrypt B;
 		String real_salt;
 		byte saltb[], hashed[];
@@ -611,6 +615,9 @@ public class BCrypt {
 		int rounds, off;
 		StringBuilder rs = new StringBuilder();
 
+		if (!unsafe && passwordb.length > 72) {
+			throw new IllegalStateException("password cannot be more than 72 bytes");
+		}
 		if (salt == null) {
 			throw new IllegalArgumentException("salt cannot be null");
 		}
@@ -762,6 +769,11 @@ public class BCrypt {
 	public static boolean checkpw(String plaintext, String hashed) {
 		byte[] passwordb = plaintext.getBytes(StandardCharsets.UTF_8);
 		return equalsNoEarlyReturn(hashed, hashpwforcheck(passwordb, hashed));
+	}
+
+	public static boolean checkpw_unsafe(String plaintext, String hashed) {
+		byte[] passwordb = plaintext.getBytes(StandardCharsets.UTF_8);
+		return equalsNoEarlyReturn(hashed, hashpwforcheck_unsafe(passwordb, hashed));
 	}
 
 	/**
